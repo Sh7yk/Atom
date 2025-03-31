@@ -1,0 +1,115 @@
+Чтобы развернуть подчиненный центр сертификации (Subordinate CA) с использованием OpenSSL на Debian 12, выполните следующие шаги:
+
+---
+
+### 1. Подготовка структуры каталогов
+Создайте директории для подчиненного CA:
+sudo mkdir -p /etc/ssl/subca/{private,certs,crl,newcerts,csr}
+sudo chmod 700 /etc/ssl/subca/private
+touch /etc/ssl/subca/index.txt
+echo 1000 > /etc/ssl/subca/serial
+
+---
+
+### 2. Создание конфигурационного файла для Subordinate CA
+Создайте файл /etc/ssl/subca/openssl.cnf:
+[ ca ]
+default_ca = subca
+
+[ subca ]
+dir = /etc/ssl/subca
+certs = $dir/certs
+crl_dir = $dir/crl
+new_certs_dir = $dir/newcerts
+database = $dir/index.txt
+serial = $dir/serial
+RANDFILE = $dir/private/.rand
+private_key = $dir/private/subca.key
+certificate = $dir/certs/subca.crt
+
+policy = policy_any
+email_in_dn = no
+unique_subject = no
+
+[ policy_any ]
+countryName = optional
+stateOrProvinceName = optional
+organizationName = optional
+organizationalUnitName = optional
+commonName = supplied
+
+[ req ]
+default_bits = 4096
+encrypt_key = yes
+default_md = sha256
+utf8 = yes
+string_mask = utf8only
+prompt = no
+distinguished_name = req_distinguished_name
+
+[ req_distinguished_name ]
+countryName = "RU"
+stateOrProvinceName = "Moscow"
+localityName = "Moscow"
+organizationName = "My Company Sub CA"
+organizationalUnitName = "IT Department"
+commonName = "My Subordinate CA"
+
+[ v3_sub_ca ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+basicConstraints = critical, CA:TRUE, pathlen:0
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+---
+
+### 3. Генерация ключа и CSR для Subordinate CA
+# Создайте закрытый ключ
+openssl genpkey -algorithm RSA -out /etc/ssl/subca/private/subca.key -aes256
+
+# Создайте CSR (запрос на подпись)
+openssl req -new -config /etc/ssl/subca/openssl.cnf \
+    -key /etc/ssl/subca/private/subca.key \
+    -out /etc/ssl/subca/csr/subca.csr
+
+---
+
+### 4. Подпись CSR корневым CA
+На корневом CA выполните:
+openssl ca -config /etc/ssl/root-ca/openssl.cnf \
+    -extensions v3_sub_ca \
+    -in /etc/ssl/subca/csr/subca.csr \
+    -out /etc/ssl/subca/certs/subca.crt
+
+---
+
+### 5. Настройка цепочки доверия
+Скопируйте сертификаты в нужные места:
+# Корневой сертификат
+cp /etc/ssl/root-ca/certs/ca.crt /etc/ssl/certs/
+
+# Сертификат подчиненного CA
+cp /etc/ssl/subca/certs/subca.crt /etc/ssl/certs/
+
+---
+
+### 6. Проверка цепочки сертификатов
+openssl verify -CAfile /etc/ssl/root-ca/certs/ca.crt \
+    /etc/ssl/subca/certs/subca.crt
+
+---
+
+### 7. Пример использования Subordinate CA
+Для выпуска сертификата через подчиненный CA:
+openssl ca -config /etc/ssl/subca/openssl.cnf \
+    -in /path/to/cert.csr \
+    -out /path/to/cert.crt
+
+---
+
+### Важные замечания:
+1. Безопасность ключей: Храните закрытые ключи (subca.key) с ограниченными правами (chmod 400).
+2. CRL/OCSP: Настройте регулярное обновление списков отзыва.
+3. Срок действия: Убедитесь, что срок действия подчиненного CA меньше корневого.
+
+Готово! Теперь у вас есть рабочая иерархия из двух уровней CA.
