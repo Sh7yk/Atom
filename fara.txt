@@ -1,0 +1,103 @@
+LINUX
+
+/var/log/apache2/access + error
+/var/log/nginx/access.log --> /usr/local/nginx/conf , /etc/nginx , or /usr/local/etc/nginx
+
+
+/var/log/mysql/mysql.log
+
+
+/etc/apache2/httpd.conf
+/etc/apache2/apache2.conf
+/etc/httpd/httpd.conf
+/etc/httpd/conf/httpd.conf
+
+
+________
+~/.bash_history, ~/.zsh_history
+
+titov --> hide in /etc/
+__________
+WINDOWS
+
+СМОТРИМ NTUSER.DAT либо через regedit, либо через https://ericzimmerman.github.io/#!index.md --> Registry explorer | Offline Registry Viewer
+Парсим логи --> https://github.com/omerbenamram/evtx --> Get-ChildItem -Path "C:\путь\к\папке" -Recurse -File | Select-String -Pattern "текст для поиска" -List
+
+
+--Run keys--
+NTUSER.DAT|Microsoft\Windows\CurrentVersion\Run
+NTUSER.DAT|Microsoft\Windows\CurrentVersion\RunOnce
+SOFTWARE | Microsoft\Windows\CurrentVersion\Run 
+SOFTWARE | Microsoft\Windows\CurrentVersion\RunOnce
+--Startap folders--
+C:\Users\%USERPROFILE%\AppData\Roaming\Microsoft\ Windows\Start Menu\Programs\Startup
+C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup
+--tasks--
+
+C:\Windows\System32\Tasks\Task_Name
+Microsoft-Windows-TaskScheduler%4Operational.evtx
+--Services--
+C:\Windows\System32\Winevt\LogsSecurity.evtx
+System.evtx
+---Logon Scripts---
+NTUSER.DAT|Environment\UserInitMprLogonScript
+---WMI Event---
+C:\Windows\System32\wbem\Repository\OBJECTS.DATA
+
+--RDP connection--
+C:\Windows\System32\winevt\Logs\Security.evtx
+source
+---RDP connection destination---
+C:\Windows\System32\winevt\Logs\Security.evtx 
+C:\Windows\System32\winevt\Logs\Microsoft-WindowsTerminalServices RDPClient%4 Operational.evtx
+NTUSER.DAT|Software\Microsoft\ Terminal Server Client\Servers
+
+---RDP connection destination---
+C:\Windows\System32\winevt\Logs\Security.evtx
+C:\Windows\System32\winevt\Logs\Microsoft-WindowsRemote DesktopServicesRdpCoreTS%4Operational.evtx
+C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-RemoteConnectionManager%40perational.evtx
+C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx C:\Windows\System32\winevt\Logs\Security.evtx
+---Administrative Shares source---
+C:\Users\%USERPROFILE%\AppData\Local\Microsoft\Windows\USRCLASS.DAT
+-- Administrative Shares destination--
+C:\Windows\System32\winevt\Logs\Security.evtx
+--PsExec source--
+C:\Windows\System32\winevt\Logs\Security.evtx
+NTUSER.DAT|Software\SysInternals\PsExec\EulaAccepted
+--PsExec destination--
+C:\Windows\System32\winevt\Logs\Security.evtx
+C:\Windows\System32\winevt\Logs\System.evtx
+
+
+
+
+
+--RDP connection--
+C:\Windows\System32\winevt\Logs\Security.evtx 
+C:\Windows\System32\winevt\Logs\Microsoft-WindowsRemote DesktopServicesRdpCoreTS %4Operational.evtx
+C:\Windows\System32\winevt\Logs\Microsoft-Windows-TerminalServices-RemoteConnectionManager%4 Operational.evtx
+C:\Windows\System32\winevt\Logs\Microsoft-Windows- TerminalServices-LocalSessionManager%4Operational.evtx
+Initial Access
+Execution
+--USB devices--
+C:\Windows\INF
+C:\Windows\appcompat\Programs\Amcache.hve
+C:\%USERPROFILE%\NTUSER.DAT
+C:\Windows\System32\config\SOFTWARE 
+C:\Windows\System32\config\SYSTEM
+--Browser history--
+C:\Users\%USERNAME%\AppData\Local\Microsoft\Edge\User Data\Default\History
+C:\Users\%USERPROFILE%\AppData\Roaming\Mozilla\Firefox\Profiles\*.default*\places.sqlite
+C:\Users\%USERPROFILE%\AppData\Local\Google\Chrome\User Data\Default\History
+--Files opening--
+NTUSER.DAT|Software\Microsoft\Windows\CurrentVersion\Explorer\ComDlg32\OpenSavePidIMRU
+NTUSER.DAT|Software\Microsoft\Windows\CurrentVersion\Explorer\RecentDocs
+C:\Users\%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations
+C:\Users\%USERPROFILE%\AppData\Roaming\Microsoft\Windows\Recent\
+--Execution traces--
+C:\Windows\Prefetch
+SYSTEM| ControlSet001\Control\ Session Manager\AppCompatCache
+USRCLASS.DAT | Local Settings\Software\Microsoft\ Windows\Shell\MUICache
+C:\Windows\appcompat\Programs\Amcache.hve
+NTUSER.DAT|Software\Microsoft\Windows\
+CurrentVersion\Explorer\UserAssist
