@@ -1,0 +1,237 @@
+https://habr.com/ru/companies/first/articles/839496/ - в целом о форензике
+https://ericzimmerman.github.io/#!index.md - инструменты
+https://forensafe.com/free.html
+https://www.sleuthkit.org/sleuthkit/download.php
+
+
+# Папка, где находятся файлы EVTX
+$inputFolder = "D:/evtx"
+
+# Папка, куда сохранять XML файлы
+$outputFolder = "D:/Logs"
+
+# Создаём папку, если её нет
+New-Item -ItemType Directory -Path $outputFolder -Force
+
+# Находим все файлы EVTX и конвертируем их в XML
+Get-ChildItem -Path $inputFolder -Recurse -Filter "*.evtx" | ForEach-Object {
+    $xmlPath = "$outputFolder\$($_.BaseName).xml"
+    try {
+        # Используем Get-WinEvent для чтения .evtx
+        $events = Get-WinEvent -Path $_.FullName
+        
+        # Экспортируем события в XML
+        $events | Export-Clixml -Path $xmlPath
+        Write-Host "File $($_.FullName) -> $xmlPath"
+    }
+    catch {
+        Write-Host "Error processing file $($_.FullName): $_"
+    }
+}
+
+Write-Host "Conversion completed!"
+
+Get-ChildItem -Path "C:\путь\к\папке" -Recurse -File | Select-String -Pattern "текст для поиска" -List
+
+-List - возвращает только первое совпадение
+
+
+1. Монтирование образов
+Windows образ: Для монтирования в VirtualBox:
+VBoxManage convertfromraw image.vdi image.vmdk
+После чего можно запустить виртуальную машину и монтировать образ через интерфейс.
+
+Linux образ: Для монтирования VDI-образа в Linux, можно использовать команду:
+qemu-img convert -f vdi -O raw image.vdi image.raw
+sudo mount -o loop image.raw /mnt
+Это позволит вам работать с файлами образа как с обычной файловой системой.
+
+2. Анализ файловой системы
+Для Windows:
+Проанализировать журнал событий с помощью Event Viewer или команд:
+wevtutil qe Security /f:text
+wevtutil qe System /f:text
+
+Изучить папку C:\Windows\Prefetch, чтобы понять, какие программы запускались.
+
+Проверить наличие незарегистрированных или подозрительных программ в C:\Users<username>\AppData\Roaming.
+
+Просмотреть автозагрузку:
+reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run
+
+Проанализировать Windows Event Logs и Registry.
+
+Для Linux:
+Просмотреть файлы в директориях /var/log (особенно auth.log, syslog, messages, dmesg) на наличие подозрительных действий.
+cat /var/log/auth.log
+cat /var/log/syslog
+
+Проанализировать bash history:
+cat /home/<user>/.bash_history
+Проверить, были ли добавлены новые пользователи или группы:
+cat /etc/passwd
+cat /etc/group
+
+3. Поиск вредоносных программ
+Windows:
+Проверьте наличие файлов с именами, которые могут быть связаны с вредоносным ПО (например, странные EXE-файлы).
+
+Используйте Sysinternals для мониторинга процессов, сервисов и автозагрузки.
+
+Изучите наличие ключей реестра, связанных с программами, которые могут быть использованы злоумышленниками для установления устойчивого доступа.
+
+Linux:
+Изучите все исполнимые файлы в директориях /bin, /usr/bin, /sbin, /usr/sbin, и проверьте их подписи и хеши.
+
+Проверьте наличие таймеров или cron-заданий:
+cat /etc/crontab
+ls /etc/cron.d/
+
+4. Поиск следов атаки
+Windows:
+Используйте утилиту RegRipper для извлечения информации из реестра о действиях пользователя или приложений.
+
+Проверьте логи доступа (например, через Internet Explorer или Edge). Используйте IEHistoryView для анализа истории браузера.
+
+Linux:
+Проанализируйте логи SSH-логинов:
+last -a
+grep "sshd" /var/log/auth.log
+
+Применяйте chkrootkit или rkhunter для поиска корневых шпионов.
+
+5. Восстановление данных
+Для восстановления удаленных файлов используйте инструменты, такие как TestDisk или Recuva для Windows, и extundelete для Linux.
+
+Для extundelete (Linux):
+sudo extundelete /dev/sda1 --restore-all
+
+Инструменты:
+
+1. Event Viewer (Windows)
+Event Viewer — это встроенный инструмент в Windows, и он не требует установки. Чтобы открыть его:
+
+Нажмите Win + R.
+
+Введите eventvwr.msc и нажмите Enter.
+
+Вы также можете получить доступ к Event Viewer через Панель управления:
+
+Перейдите в Панель управления > Администрирование > Просмотр событий.
+
+2. Sysinternals (Windows)
+Sysinternals — набор инструментов для диагностики и мониторинга системы.
+
+Установка:
+Перейдите на официальную страницу Sysinternals.
+
+Скачайте все утилиты в виде архива Sysinternals Suite (https://download.sysinternals.com/files/SysinternalsSuite.zip).
+
+Распакуйте архив в удобное место на вашем ПК.
+
+Для запуска любого инструмента из набора просто запустите его EXE-файл.
+
+3. RegRipper (Windows)
+RegRipper — это инструмент для извлечения данных из реестра Windows.
+
+Установка:
+Перейдите на страницу проекта RegRipper на GitHub.
+
+Скачайте архив с инструментом.
+
+Распакуйте архив в удобное место.
+
+Для запуска используйте командную строку в каталоге с распакованным RegRipper, затем запускайте скрипты, например:
+perl rip.pl -r <path-to-reg-hive>
+
+4. IEHistoryView (Windows)
+IEHistoryView — инструмент для анализа истории браузера Internet Explorer.
+
+Установка:
+Перейдите на официальную страницу IEHistoryView.
+
+Скачайте и распакуйте архив.
+
+Запустите EXE-файл для использования инструмента.
+
+5. chkrootkit (Linux)
+chkrootkit — инструмент для поиска корневых шпионов (rootkits) в Linux.
+
+Установка:
+Для Debian/Ubuntu:
+sudo apt-get update
+sudo apt-get install chkrootkit
+
+Для запуска:
+sudo chkrootkit
+
+6. rkhunter (Linux)
+rkhunter — инструмент для поиска rootkits и других угроз в Linux.
+
+Установка:
+Для Debian/Ubuntu:
+sudo apt-get update
+sudo apt-get install rkhunter
+
+Для запуска:
+sudo rkhunter --check
+
+7. TestDisk (Windows, Linux)
+TestDisk — инструмент для восстановления удалённых файлов и разделов.
+
+Установка:
+Для Windows:
+
+Перейдите на официальную страницу TestDisk.
+
+Скачайте архив для Windows и распакуйте его.
+
+Запустите EXE-файл для использования.
+
+Для Linux:
+sudo apt-get install testdisk
+
+Для запуска:
+sudo testdisk
+
+8. Recuva (Windows)
+Recuva — бесплатный инструмент для восстановления удалённых файлов в Windows.
+
+Установка:
+Перейдите на официальную страницу Recuva.
+
+Скачайте и установите программу.
+
+Запустите программу и следуйте инструкциям для восстановления файлов.
+
+9. extundelete (Linux)
+extundelete — инструмент для восстановления удалённых файлов с файловых систем EXT3/EXT4.
+
+Установка:
+Для Debian/Ubuntu:
+sudo apt-get install extundelete
+
+Для использования:
+Монтируйте файловую систему в режиме только для чтения (если она не смонтирована).
+Используйте команду для восстановления файлов:
+sudo extundelete /dev/sda1 --restore-all
+
+
+Логи PostgreSQL:
+1. Каталог данных PostgreSQL (по умолчанию)
+Обычно логи хранятся в каталоге data/pg_log:
+/var/lib/postgresql/<версия>/main/log
+или
+/var/lib/pgsql/<версия>/data/log
+(Зависит от дистрибутива и способа установки PostgreSQL.)
+
+2. Стандартные системные каталоги логов
+Некоторые дистрибутивы записывают логи в стандартные каталоги:
+Debian/Ubuntu:
+/var/log/postgresql/postgresql.log
+CentOS/RHEL/Fedora:
+/var/lib/pgsql/<версия>/data/pg_log/
+Arch Linux:
+/var/log/postgres.log
+
+3. journalctl -u postgresql --no-pager
