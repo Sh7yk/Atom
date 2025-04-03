@@ -1,0 +1,45 @@
+Если Apache не поддерживает SSLKEYLOGFILE (стандартный случай)
+
+Вам потребуется:
+
+    Приватный ключ сервера (файл .key, который вы передали в Apache).
+
+    Отключить Perfect Forward Secrecy (PFS) в Apache, чтобы использовать статический ключ для расшифровки.
+
+Шаги:
+
+    Настройте Apache для использования RSA без PFS
+    В конфигурации SSL (например, в ssl.conf или 000-default.conf):
+    apache
+    Copy
+
+    SSLEngine on
+    SSLCertificateFile /path/to/server.crt
+    SSLCertificateKeyFile /path/to/server.key
+    # Отключите PFS (используйте только RSA)
+    SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+    SSLCipherSuite RSA:!aNULL:!eNULL
+
+    Перезапустите Apache:
+    bash
+    Copy
+
+    systemctl restart apache2
+
+    Запустите tshark с приватным ключом
+    bash
+    Copy
+
+    sudo tshark -i any \
+      -o "ssl.desegment_ssl_records: TRUE" \
+      -o "ssl.desegment_ssl_application_data: TRUE" \
+      -o "ssl.keys_list:0.0.0.0,443,ssl,/path/to/server.key" \
+      -Y "http or http2" -V -d tcp.port==443,ssl
+
+        ssl.keys_list — путь к приватному ключу сервера.
+
+        -Y "http or http2" — фильтр для HTTP-трафика.
+
+docker compose up -d --build
+
+—no-cash
