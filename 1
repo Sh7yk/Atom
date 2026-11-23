@@ -1,0 +1,1 @@
+redis-cli -h <TARGET_IP> eval "local function check(f) local e = getfenv(f); return tostring(e.os ~= nil and e.os.execute ~= nil) end; return check(redis.pcall) .. '|' .. check(redis.error_reply) .. '|' .. check(redis.status_reply) .. '|' .. check(redis.sha1hex) .. '|' .. check(redis.log)" 0
