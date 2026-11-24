@@ -1,1 +1,1 @@
-ls -ld /data/docker/overlay2 /data/docker/overlay2/l 2>&1; echo '---'; find /data/docker/overlay2/l -maxdepth 1 -type l -printf '%p -> %l\n' 2>/dev/null | head -5; echo '---DOCKER.SOCK---'; ls -la /var/run/docker.sock /run/docker.sock 2>&1
+ls -ld /etc/cron* /var/spool/cron /etc/init.d /usr/local/bin /usr/local/sbin /docker-entrypoint-initdb.d 2>/dev/null; echo '---PATH---'; echo $PATH | tr ':' '\n' | xargs -I {} ls -ld {} 2>/dev/null
